@@ -22,7 +22,7 @@ class _StepTrackerState extends State<StepTracker> {
   int _steps = 0;
   final int _goal = 5000;
 
-  // Dummy data for History Chart (Sathiye dawas 7)
+  // Dummy data for History Chart (Last 7 days)
   final List<double> _weeklySteps = [3500, 4200, 2000, 5100, 4800, 3000, 0];
 
   @override
@@ -34,11 +34,15 @@ class _StepTrackerState extends State<StepTracker> {
   void onStepCount(StepCount event) {
     setState(() {
       _steps = event.steps;
-      if (_steps >= _goal) _showBadge(); // Goal eka reach unama badge eka pennanna
+      if (_steps >= _goal) {
+        // Goal reach unama badge notification ekak danna puluwan
+      }
     });
   }
 
-  void onStepCountError(Object error) => setState(() => _steps = 0);
+  void onStepCountError(Object error) {
+    setState(() => _steps = 0);
+  }
 
   void initPlatformState() async {
     if (await Permission.activityRecognition.request().isGranted) {
@@ -47,15 +51,8 @@ class _StepTrackerState extends State<StepTracker> {
     }
   }
 
-  void _showBadge() {
-    // Goal reach unama yana badge popup eka
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text("🎉 Goal Reached! You earned a 'Walker' Badge!"),
-        backgroundColor: Colors.purpleAccent,
-      ),
-    );
-  }
+  double get calories => _steps * 0.04; 
+  double get distance => _steps * 0.0008; 
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +60,7 @@ class _StepTrackerState extends State<StepTracker> {
 
     return Scaffold(
       body: Container(
-        // Messenger style gradient theme
+        // Messenger style smooth gradient
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -75,31 +72,32 @@ class _StepTrackerState extends State<StepTracker> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(height: 20),
-                Text('FITNESS TRACKER', 
-                  style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2)),
-                
                 const SizedBox(height: 30),
+                Text('MY FITNESS TRACKER', 
+                  style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2)),
                 
-                // Circular Progress
+                const SizedBox(height: 40),
+                
+                // Main Circular Progress
                 Center(
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
                       SizedBox(
-                        width: 220,
-                        height: 220,
+                        width: 240,
+                        height: 240,
                         child: CircularProgressIndicator(
                           value: progress,
-                          strokeWidth: 12,
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          strokeWidth: 15,
+                          backgroundColor: Colors.white.withValues(alpha: 0.1),
                           valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       ),
                       Column(
                         children: [
-                          Text('$_steps', style: GoogleFonts.poppins(fontSize: 50, fontWeight: FontWeight.bold, color: Colors.white)),
-                          Text('Steps Today', style: GoogleFonts.poppins(color: Colors.white70)),
+                          const Icon(Icons.directions_run, color: Colors.white70, size: 40),
+                          Text('$_steps', style: GoogleFonts.poppins(fontSize: 55, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text('Steps Today', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 16)),
                         ],
                       ),
                     ],
@@ -108,21 +106,35 @@ class _StepTrackerState extends State<StepTracker> {
 
                 const SizedBox(height: 40),
 
-                // History Chart Section
+                // Distance & Calories Cards
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      _buildInfoCard("Calories", "${calories.toStringAsFixed(1)} kcal", Icons.local_fire_department, Colors.orangeAccent),
+                      const SizedBox(width: 15),
+                      _buildInfoCard("Distance", "${distance.toStringAsFixed(2)} km", Icons.location_on, Colors.greenAccent),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // History Chart
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
-                    height: 200,
-                    padding: const EdgeInsets.all(15),
+                    height: 180,
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(25),
                     ),
                     child: BarChart(
                       BarChartData(
                         barGroups: _weeklySteps.asMap().entries.map((e) => 
                           BarChartGroupData(x: e.key, barRods: [
-                            BarChartRodData(toY: e.value, color: Colors.white, width: 12, borderRadius: BorderRadius.circular(4))
+                            BarChartRodData(toY: e.value, color: Colors.white, width: 10, borderRadius: BorderRadius.circular(5))
                           ])).toList(),
                         borderData: FlBorderData(show: false),
                         titlesData: const FlTitlesData(show: false),
@@ -132,18 +144,21 @@ class _StepTrackerState extends State<StepTracker> {
                   ),
                 ),
 
+                const SizedBox(height: 30),
+
                 // Badges Section
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildBadgeIcon(Icons.stars, "Starter", _steps > 100),
-                      _buildBadgeIcon(Icons.bolt, "Active", _steps > 2500),
-                      _buildBadgeIcon(Icons.emoji_events, "Pro", _steps >= _goal),
+                      _buildBadge(Icons.workspace_premium, "Starter", _steps > 500),
+                      _buildBadge(Icons.bolt, "Active", _steps > 2500),
+                      _buildBadge(Icons.emoji_events, "Pro", _steps >= _goal),
                     ],
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -152,11 +167,36 @@ class _StepTrackerState extends State<StepTracker> {
     );
   }
 
-  Widget _buildBadgeIcon(IconData icon, String label, bool unlocked) {
+  Widget _buildInfoCard(String title, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
+            Text(title, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+            Text(value, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(IconData icon, String label, bool isUnlocked) {
     return Column(
       children: [
-        Icon(icon, size: 40, color: unlocked ? Colors.amber : Colors.white24),
-        Text(label, style: GoogleFonts.poppins(color: unlocked ? Colors.white : Colors.white24, fontSize: 12)),
+        CircleAvatar(
+          backgroundColor: isUnlocked ? Colors.amber : Colors.white10,
+          radius: 25,
+          child: Icon(icon, color: isUnlocked ? Colors.white : Colors.white24, size: 30),
+        ),
+        const SizedBox(height: 5),
+        Text(label, style: GoogleFonts.poppins(color: isUnlocked ? Colors.white : Colors.white24, fontSize: 12)),
       ],
     );
   }
