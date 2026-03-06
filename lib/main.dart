@@ -34,12 +34,10 @@ class _StepTrackerState extends State<StepTracker> {
     initPlatformState();
   }
 
-  // --- OYA KIYAPU ERRORS DEKA FIX KARE MEHETHAI ---
   void _initNotifications() async {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
     
-    // settings: kiyana keyword eka nisa thamai severity 8 errors awe.
     await _notifications.initialize(
       settings: const InitializationSettings(android: androidInit, iOS: iosInit),
     );
@@ -50,7 +48,7 @@ class _StepTrackerState extends State<StepTracker> {
       'goal_channel', 
       'Goals', 
       importance: Importance.max, 
-      priority: Priority.high
+      priority: Priority.high,
     );
     const notificationDetails = NotificationDetails(
       android: androidDetails, 
